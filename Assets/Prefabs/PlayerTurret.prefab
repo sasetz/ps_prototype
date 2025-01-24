@@ -205,6 +205,10 @@ MonoBehaviour:
   cameraComponent: {fileID: 7089076621709619087}
   sensitivity: 0.15
   playerTransform: {fileID: 271252764923438269}
+  shotDistance: 600
+  xRestrictionDeg: 120
+  yRestrictionDeg: 90
+  shotParticle: {fileID: 7194811119379528244, guid: f932162311400224883898e4ff1387bf, type: 3}
 --- !u!1 &7700751558779737103
 GameObject:
   m_ObjectHideFlags: 0
