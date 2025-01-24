@@ -5,9 +5,9 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public Camera camera;
+    public Camera cameraComponent;
     public float sensitivity = .6f;
-    public Transform transform;
+    public Transform playerTransform;
 
     InputAction lookAction;
     float cameraVerticalRotation = 0f;
@@ -32,6 +32,8 @@ public class PlayerMovement : MonoBehaviour
 
         cameraVerticalRotation -= lookValue.y;
         cameraVerticalRotation = Mathf.Clamp(cameraVerticalRotation, -90f, 90f);
+        cameraComponent.transform.localEulerAngles = Vector3.right * cameraVerticalRotation;
+        playerTransform.Rotate(Vector3.up * lookValue.x);
         camera.transform.localEulerAngles = Vector3.right * cameraVerticalRotation;
         transform.Rotate(Vector3.up * lookValue.x);
 
