@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/SimpleCustomEditor.uss?fileID=7433441132597879392&amp;guid=85121f8ce24ef6a4c89a1a8ca80d221f&amp;type=3#SimpleCustomEditor" />
+    <ui:VisualElement focusable="false" name="OuterAligner" style="flex-grow: 1; justify-content: center; align-self: center; align-items: center; flex-direction: column; flex-basis: auto; height: auto; width: auto; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;">
+        <ui:VisualElement name="Crosshair" style="flex-grow: 0; justify-content: center; align-self: center; background-image: url(&quot;project://database/Assets/UI/crosshair0.png?fileID=2800000&amp;guid=7b6d1555708e64640bd3446dfbb6011e&amp;type=3#crosshair0&quot;); width: 64px; height: 64px; align-items: auto; -unity-background-image-tint-color: rgb(255, 255, 255); -unity-background-scale-mode: stretch-to-fill; background-color: rgba(0, 0, 0, 0);" />
+    </ui:VisualElement>
+</ui:UXML>

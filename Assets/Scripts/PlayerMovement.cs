@@ -28,15 +28,10 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         Vector2 lookValue = lookAction.ReadValue<Vector2>();
-        lookValue *= sensitivity;
 
-        cameraVerticalRotation -= lookValue.y;
+        cameraVerticalRotation -= lookValue.y * sensitivity;
         cameraVerticalRotation = Mathf.Clamp(cameraVerticalRotation, -90f, 90f);
         cameraComponent.transform.localEulerAngles = Vector3.right * cameraVerticalRotation;
-        playerTransform.Rotate(Vector3.up * lookValue.x);
-        GetComponent<Camera>().transform.localEulerAngles = Vector3.right * cameraVerticalRotation;
-        transform.Rotate(Vector3.up * lookValue.x);
-
-        
+        playerTransform.Rotate(Vector3.up * (lookValue.x * sensitivity));
     }
 }
