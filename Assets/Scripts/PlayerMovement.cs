@@ -34,5 +34,7 @@ public class PlayerMovement : MonoBehaviour
         cameraVerticalRotation = Mathf.Clamp(cameraVerticalRotation, -90f, 90f);
         camera.transform.localEulerAngles = Vector3.right * cameraVerticalRotation;
         transform.Rotate(Vector3.up * lookValue.x);
+
+        
     }
 }
