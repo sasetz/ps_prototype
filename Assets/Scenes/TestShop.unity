@@ -2915,7 +2915,7 @@ Transform:
   m_GameObject: {fileID: 1065259174}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 104.82, y: 10.614664, z: 71.61}
+  m_LocalPosition: {x: 82.52, y: 4.29, z: 70.08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5358,18 +5358,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 911115608320829834, guid: cbd13a0c8feda8c4fafb20ffbfbd9b95, type: 3}
-      propertyPath: m_AutoRepath
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 911115608320829834, guid: cbd13a0c8feda8c4fafb20ffbfbd9b95, type: 3}
-      propertyPath: m_WalkableMask
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 911115608320829834, guid: cbd13a0c8feda8c4fafb20ffbfbd9b95, type: 3}
-      propertyPath: m_AutoTraverseOffMeshLink
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 1211222740679393996, guid: cbd13a0c8feda8c4fafb20ffbfbd9b95, type: 3}
       propertyPath: m_LocalPosition.x
       value: 166.68
@@ -5410,6 +5398,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6902176116182562732, guid: cbd13a0c8feda8c4fafb20ffbfbd9b95, type: 3}
+      propertyPath: goal
+      value: 
+      objectReference: {fileID: 1065259175}
     - target: {fileID: 6972555962987397075, guid: cbd13a0c8feda8c4fafb20ffbfbd9b95, type: 3}
       propertyPath: m_Name
       value: Capsule
