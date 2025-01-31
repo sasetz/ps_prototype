@@ -8,15 +8,16 @@ using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
 public enum CustomerState : byte {
-    Entered,               // just entering the shop
-    WentToItem,            // moving in the direction of an item
-    LookedAtItem,          // standing and looking at an item
-    DozedOff,              // idle doing nothing, thinking
-    Mugged,                // standing at the check out, waiting for the cashier to give the money
-    StoleItem,           // stealing an item from the shelf
-    RanOff,             // running with the item/cash/from you
-    CheckedOut,            // checking out
-    Exited,                // exiting the shop
+    Entered,                // just entering the shop
+    WentToItem,             // moving in the direction of an item
+    LookedAtItem,           // standing and looking at an item
+    DozedOff,               // idle doing nothing, thinking
+    Mugged,                 // standing at the check out, waiting for the cashier to give the money
+    StoleItem,              // stealing an item from the shelf
+    RanOff,                 // running with the item/cash/from you
+    FinishedWaitingInLine,         // waiting for check out
+    CheckedOut,             // checking out
+    Exited,                 // exiting the shop
 }
 
 public enum CustomerType : byte {
@@ -35,25 +36,24 @@ public struct Customer {
     public UInt16 id;
     public CustomerState state;
     public CustomerType type;
-    public bool deleted;
 }
+
+// TODO: mob spawning
+// TODO: finish mob behavior
+
 public class AIManager : MonoBehaviour
 {
     public const int MAX_SHELVES = 32;
     public const int MAX_CUSTOMERS = 256;
 
-    // TODO: item picker (item is filled/not filled)
-    // TODO: checkout queue
-    // TODO: mob spawner
-    // TODO: finish mob behavior
     public Transform[] items;
     public Transform first_exit;
     public Transform second_exit;
-    public Transform[] checkout; // TODO: implement queue
+    public Transform[] checkout;
     public float distanceThreshold = 0.2f;
 
     private SwapbackArray<Customer> idle_customers, updating_customers;
-    private Queue<Customer> checkout_customers;
+    private CustomQueue<Customer> checkout_customers;
     private float queue_timer = 0f; // when expired, next customer in checkout_customers is added to the updating_customers array
     private SwapbackArray<Vector3> vacant_shelves; // TODO: consider making another data structure specifically for this
     private SwapbackArray<Vector3> occupied_shelves;
@@ -65,7 +65,6 @@ public class AIManager : MonoBehaviour
 
         idle_customers = new SwapbackArray<Customer>(MAX_CUSTOMERS);
         updating_customers = new SwapbackArray<Customer>(MAX_CUSTOMERS);
-        checkout_customers = new Queue<Customer>(MAX_CUSTOMERS);
     }
 
     // Start is called before the first frame update
@@ -76,31 +75,45 @@ public class AIManager : MonoBehaviour
         {
             vacant_shelves.Add(items[i].position);
         }
+        checkout_customers = new CustomQueue<Customer>(checkout.Length);
     }
 
-    // Update is called once per frame
     void Update()
     {
+        // update timers
         var deltaTime = Time.deltaTime;
         for (int i = 0; i < idle_customers.Count; i++)
         {
-            idle_customers[i].remainingTime -= deltaTime;
+            if (idle_customers[i].remainingTime >= 0f)
+            {
+                idle_customers[i].remainingTime -= deltaTime;
+            }
         }
-        queue_timer -= deltaTime;
+        if (queue_timer >= 0f)
+            queue_timer -= deltaTime;
 
+        // determine which customers need to be updated
         for (int i = 0; i < idle_customers.Count;)
         {
             if (idle_customers[i].remainingTime <= 0f && idle_customers[i].agent.remainingDistance <= distanceThreshold)
             {
-                if (idle_customers[i].state == CustomerState.Exited)
-                {
-                    Destroy(idle_customers[i].agent);
-                }
-                else
-                {
-                    updating_customers.Add(idle_customers[i]);
-                }
+                updating_customers.Add(idle_customers[i]);
                 idle_customers.RemoveAt(i);
+            }
+            else
+            {
+                // don't increment the index if we removed current customer, there's another one on that index
+                i++;
+            }
+        }
+
+        // destroy customers that have already exited
+        for (int i = 0; i < updating_customers.Count;)
+        {
+            if (updating_customers[i].state == CustomerState.Exited)
+            {
+                Destroy(idle_customers[i].agent);
+                updating_customers.RemoveAt(i);
             }
             else
             {
@@ -109,11 +122,17 @@ public class AIManager : MonoBehaviour
             }
         }
 
+        // handle next in queue
         if (queue_timer <= 0f && checkout_customers.Count > 0)
         {
             updating_customers.Add(checkout_customers.Dequeue());
+            for (int i = 0; i < checkout_customers.Count; i++)
+            {
+                checkout_customers[i].agent.destination = checkout[i].position;
+            }
         }
 
+        // main customer update loop
         for (int i = 0; i < updating_customers.Count; i++)
         {
             switch (updating_customers[i].type)
@@ -125,6 +144,14 @@ public class AIManager : MonoBehaviour
                 Debug.LogError("An unknown customer type encountered!");
                 break;
             }
+        }
+
+        // return the updating customers back to idle array
+        // NOTE: customers after the queue don't go back into it, they return to idle
+        // mode and wait until they exit basically
+        for (int i = 0; i < updating_customers.Count; i++)
+        {
+            idle_customers.Add(updating_customers[i]);
         }
         updating_customers.Clear(); // all customers that needed it, were updated
     }
@@ -151,9 +178,10 @@ public class AIManager : MonoBehaviour
             case CustomerState.LookedAtItem:
                 if (Random.Range(1, 4) == 1)
                 {
-                    updating_customers[index].state = CustomerState.CheckedOut;
-                    // TODO: add customer to checkout queue, update the destination
-                    // updating_customers[index].agent.destination = checkout[0].position;
+                    // TODO: move this into a function
+                    updating_customers[index].state = CustomerState.FinishedWaitingInLine;
+                    int queue_position = checkout_customers.Enqueue(updating_customers[index]);
+                    updating_customers[index].agent.destination = checkout[queue_position].position;
                 }
                 else if (occupyVacantShelf(index))
                 {
@@ -162,12 +190,18 @@ public class AIManager : MonoBehaviour
                 else
                 {
                     updating_customers[index].state = CustomerState.Exited;
-                    updating_customers[index].agent.destination = Random.Range(1,2) == 1 ? first_exit.position : second_exit.position;
+                    updating_customers[index].agent.destination = Random.Range(1, 2) == 1 ? first_exit.position : second_exit.position;
                 }
+                break;
+            case CustomerState.FinishedWaitingInLine:
+                // it's our checkout time, we need to set a timer and switch to the next state
+                // TODO: move this into a function
+                updating_customers[index].state = CustomerState.CheckedOut;
+                queue_timer = Random.Range(5, 15);
                 break;
             case CustomerState.CheckedOut:
                 updating_customers[index].state = CustomerState.Exited;
-                updating_customers[index].agent.destination = Random.Range(1,2) == 1 ? first_exit.position : second_exit.position;
+                updating_customers[index].agent.destination = Random.Range(1, 2) == 1 ? first_exit.position : second_exit.position;
                 break;
             default:
                 Debug.LogError("An error state has occurred! This is probably a bug!");
@@ -176,7 +210,6 @@ public class AIManager : MonoBehaviour
                 updating_customers[index].agent.destination = first_exit.position;
                 break;
         }
-        idle_customers.Add(updating_customers[index]);
     }
 
     private bool occupyVacantShelf(int index)
